@@ -28,14 +28,21 @@
 //   readrand100K  -- read N/1000 100K values in sequential order in async mode
 static const char* FLAGS_benchmarks =
     // "fillseq,"
+    // "fillseq,"
+    // "fillseq,"
+    // "fillseq,"
+    // "fillseq,"
     // "fillseqsync,"
     // "fillseqbatch,"
-    //"fillrandom,"
+    // "fillrandom,"
+    // "fillrandom,"
+    // "fillrandom,"
+    // "fillrandom,"
     // "fillrandsync,"
     // "fillrandbatch,"
     // "overwrite,"
     // "overwritebatch,"
-    "readrandom,"
+    // "readrandom,"
     "readrandom,"
     "readrandom,"
     "readrandom,"
@@ -48,7 +55,7 @@ static const char* FLAGS_benchmarks =
     ;
 
 // Number of key/values to place in database
-static int FLAGS_num = 1000000;
+static int FLAGS_num = 100000;
 
 // Number of read operations to do.  If negative, do FLAGS_num reads.
 static int FLAGS_reads = -1;
@@ -86,7 +93,7 @@ static bool FLAGS_WAL_enabled = true;
 
 // Use the db with the following name.
 static const char* FLAGS_db = "tmp/leveldbtest-1000/dbbench_sqlite3-1.db";
-
+//static const char* FLAGS_db = nullptr;
 inline static void ExecErrorCheck(int status, char* err_msg) {
   if (status != SQLITE_OK) {
     std::fprintf(stderr, "SQL error: %s\n", err_msg);

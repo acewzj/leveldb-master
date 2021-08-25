@@ -46,18 +46,30 @@
 //      heapprofile -- Dump a heap profile (if supported by this port)
 static const char* FLAGS_benchmarks =
     // "fillseq,"
+    // "fillseq,"
+    // "fillseq,"
+    // "fillseq,"
     // "fillsync,"
+    // "fillrandom,"
+    // "fillrandom,"
+    // "fillrandom,"
     // "fillrandom,"
     // "overwrite,"
     "readrandom,"
-    "readrandom,"  // Extra run to allow previous compactions to quiesce
+    "readrandom,"
+    "readrandom,"
+    "readrandom,"
+    // "readhot,"
+    // "readhot,"
+    // "readhot,"
+    // "readhot,"
+
+    // "readrandom,"  // Extra run to allow previous compactions to quiesce
     // "readseq,"
     // "readreverse,"
     // "compact,"
-    "readrandom,"
-    "readrandom,"
-    "readrandom,"
-    "readseq,"
+    // "readrandom,"
+    // "readseq,"
     // "readreverse,"
     // "fill100K,"
     // "crc32c,"
@@ -66,7 +78,7 @@ static const char* FLAGS_benchmarks =
     ;
 
 // Number of key/values to place in database
-static int FLAGS_num = 1000000;
+static int FLAGS_num = 100000;
 
 // Number of read operations to do.  If negative, do FLAGS_num reads.
 static int FLAGS_reads = -1;
@@ -85,7 +97,7 @@ static double FLAGS_compression_ratio = 0.5;
 static bool FLAGS_histogram = false;
 
 // Count the number of string comparisons performed
-static bool FLAGS_comparisons = true;
+static bool FLAGS_comparisons = false;
 
 // Number of bytes to buffer in memtable before compacting
 // (initialized to default value by "main")
@@ -123,7 +135,7 @@ static bool FLAGS_reuse_logs = false;
 
 // Use the db with the following name.
 static const char* FLAGS_db = "/tmp/leveldbtest-1000/dbbench";
-
+//static const char* FLAGS_db = nullptr;
 namespace leveldb {
 
 namespace {
@@ -524,7 +536,6 @@ class Benchmark {
         method = &Benchmark::OpenBench;
         num_ /= 10000;
         if (num_ < 1) num_ = 1;
-        printf("open\n");
       } else if (name == Slice("fillseq")) {
         fresh_db = true;
         method = &Benchmark::WriteSeq;
@@ -534,7 +545,6 @@ class Benchmark {
         method = &Benchmark::WriteSeq;
       } else if (name == Slice("fillrandom")) {
         fresh_db = true;
-        printf("fillrandom\n");
         method = &Benchmark::WriteRandom;
       } else if (name == Slice("overwrite")) {
         fresh_db = false;
@@ -554,7 +564,6 @@ class Benchmark {
       } else if (name == Slice("readreverse")) {
         method = &Benchmark::ReadReverse;
       } else if (name == Slice("readrandom")) {
-        printf("readrandom\n");
         method = &Benchmark::ReadRandom;
       } else if (name == Slice("readmissing")) {
         method = &Benchmark::ReadMissing;
@@ -601,7 +610,6 @@ class Benchmark {
       //                  name.ToString().c_str());
       //     method = nullptr;
       //   } else {
-      //     printf("delete_db:%s\n", db_);
       //     delete db_;
       //     db_ = nullptr;
       //     DestroyDB(FLAGS_db, Options());
@@ -769,18 +777,20 @@ class Benchmark {
     options.env = g_env;
     options.create_if_missing = !FLAGS_use_existing_db;
     options.block_cache = cache_;
-    options.write_buffer_size = 1000000;// FLAGS_write_buffer_size
+    // options.write_buffer_size = FLAGS_write_buffer_size;
+    options.write_buffer_size = 100000;
+
+    std::cout << "write_buffer_size:" << options.write_buffer_size << std::endl;
+    //printf();
     options.max_file_size = FLAGS_max_file_size;
-    options.block_size = 8192;
+    options.block_size = FLAGS_block_size;
     if (FLAGS_comparisons) {
       options.comparator = &count_comparator_;
     }
-    options.max_open_files = 10000;
+    options.max_open_files = FLAGS_open_files;
     options.filter_policy = filter_policy_;
     options.reuse_logs = FLAGS_reuse_logs;
     Status s = DB::Open(options, FLAGS_db, &db_);
-    printf("write_buffer_size=%d\n", options.write_buffer_size);
-    printf("db_=%x\n", db_);
     if (!s.ok()) {
       std::fprintf(stderr, "open error: %s\n", s.ToString().c_str());
       std::exit(1);
@@ -1029,7 +1039,6 @@ class Benchmark {
 
 int main(int argc, char** argv) {
   FLAGS_write_buffer_size = leveldb::Options().write_buffer_size;
-  printf("FLAGS_write_buffer_size = %d\n", FLAGS_write_buffer_size);
   FLAGS_max_file_size = leveldb::Options().max_file_size;
   FLAGS_block_size = leveldb::Options().block_size;
   FLAGS_open_files = leveldb::Options().max_open_files;
